@@ -1,0 +1,18 @@
+storage.type: db
+
+server:
+  port: 8080
+
+security:
+  jwt:
+    secret-key: e4c926a0f91e152a3d3bd133c857aa9815617db1481e8833f3beaf7d73814969
+    expiration-ms: 600
+
+spring:
+  datasource:
+    url: jdbc:h2:~/project/bankingSystem;AUTO_SERVER=TRUE
+    username: sa
+    password: P@ssw0rd
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
