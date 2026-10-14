@@ -1,0 +1,63 @@
+@if (isAuthenticated()) {
+  <div class="desktop-layout">
+    <!-- Native Desktop Sidebar -->
+    <aside class="desktop-sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-logo">🏛️</div>
+        <div class="brand-text">
+          <h2>AeroBank</h2>
+          <span class="sub-caption">Enterprise Edition</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">📊</span>
+          <span class="nav-title">Dashboard</span>
+        </a>
+
+        <a routerLink="/accounts" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">💳</span>
+          <span class="nav-title">Accounts</span>
+        </a>
+
+        <a routerLink="/transactions" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">⇄</span>
+          <span class="nav-title">Transactions</span>
+        </a>
+
+        <a routerLink="/customers" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">👥</span>
+          <span class="nav-title">Clients</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="backend-status-pill">
+          <span class="pulse-dot"></span>
+          <span>Spring Boot :8080</span>
+        </div>
+
+        <div class="user-profile-strip">
+          <div class="user-avatar">
+            <span>👤</span>
+          </div>
+          <div class="user-info">
+            <span class="user-email">{{ userEmail() }}</span>
+            <span class="user-role">Secured Session</span>
+          </div>
+          <button class="logout-btn" title="Sign Out" (click)="logout()">
+            ⏻
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main View Content Area -->
+    <main class="desktop-main">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+} @else {
+  <router-outlet></router-outlet>
+}

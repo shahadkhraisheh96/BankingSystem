@@ -1,0 +1,156 @@
+<div class="accounts-container">
+  <header class="page-header">
+    <div>
+      <h1>Bank Account Registry</h1>
+      <p class="subtitle">Search, filter, and provision Current, Saving, and Corporate accounts</p>
+    </div>
+    <button class="btn btn-primary" (click)="openCreateModal()">
+      <span>+</span> Provision New Account
+    </button>
+  </header>
+
+  <!-- Filter & Search Strip -->
+  <div class="filter-strip glass-card">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input 
+        type="text" 
+        class="form-input search-input" 
+        placeholder="Filter by account number..." 
+        [(ngModel)]="searchAccountNumber">
+    </div>
+
+    <div class="customer-filter">
+      <label class="filter-label" for="filterCustomer">Filter By Client:</label>
+      <select id="filterCustomer" class="form-select filter-select" [(ngModel)]="filterCustomerId">
+        <option value="">All Clients</option>
+        @for (c of customers(); track c.id) {
+          <option [value]="c.id">Client ID: {{ c.id }} ({{ c.customerType }})</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state glass-card">
+      <div class="spinner-large"></div>
+      <p>Loading accounts...</p>
+    </div>
+  } @else if (filteredAccounts().length === 0) {
+    <div class="empty-state glass-card">
+      <span>🏦</span>
+      <h3>No accounts matched your criteria</h3>
+      <p>Adjust your filters or open a new account.</p>
+    </div>
+  } @else {
+    <div class="accounts-list-grid">
+      @for (acc of filteredAccounts(); track acc.accountNumber) {
+        <div class="account-item-card glass-card">
+          <div class="card-header">
+            <span class="badge" [ngClass]="'badge-' + (acc.accountType | lowercase)">
+              {{ acc.accountType }}
+            </span>
+            <span class="badge" [ngClass]="acc.accountState === 'OPEN' ? 'badge-open' : 'badge-closed'">
+              {{ acc.accountState }}
+            </span>
+          </div>
+
+          <div class="card-body">
+            <div class="balance-display">
+              <span class="currency-symbol">$</span>
+              <span class="balance-number">{{ acc.accountBalance | number:'1.2-2' }}</span>
+            </div>
+
+            <div class="meta-row">
+              <span class="meta-label">Account No:</span>
+              <span class="meta-value font-mono">{{ acc.accountNumber }}</span>
+            </div>
+
+            <div class="meta-row">
+              <span class="meta-label">Client ID:</span>
+              <span class="meta-value font-mono">{{ acc.customerId }}</span>
+            </div>
+
+            <div class="meta-row">
+              <span class="meta-label">Max Withdrawal:</span>
+              <span class="meta-value limit-highlight">${{ accountLimits[acc.accountType] | number }}</span>
+            </div>
+
+            <div class="meta-row">
+              <span class="meta-label">Created:</span>
+              <span class="meta-value text-muted">{{ acc.creationDate }}</span>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <a [routerLink]="['/transactions']" [queryParams]="{account: acc.accountNumber}" class="btn btn-secondary card-link-btn">
+              Audit Statements
+            </a>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Modal for Creating New Account -->
+  @if (showCreateModal()) {
+    <div class="modal-backdrop" (click)="closeCreateModal()">
+      <div class="modal-dialog glass-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Open New Bank Account</h3>
+          <button class="close-btn" (click)="closeCreateModal()">✕</button>
+        </div>
+
+        @if (createError()) {
+          <div class="alert alert-error">
+            <span>⚠️</span>
+            <span>{{ createError() }}</span>
+          </div>
+        }
+
+        @if (createSuccess()) {
+          <div class="alert alert-success">
+            <span>✓</span>
+            <span>{{ createSuccess() }}</span>
+          </div>
+        }
+
+        <div class="modal-body">
+          <div class="input-group">
+            <label class="input-label" for="clientSelect">Assign To Client</label>
+            <select id="clientSelect" class="form-select" [(ngModel)]="newCustomerId">
+              @for (c of customers(); track c.id) {
+                <option [value]="c.id">
+                  Client ID: {{ c.id }} ({{ c.customerType }})
+                </option>
+              }
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label class="input-label" for="accNumInput">New Account Number</label>
+            <input id="accNumInput" type="text" class="form-input" placeholder="e.g. 100099" [(ngModel)]="newAccountNumber">
+          </div>
+
+          <div class="input-group">
+            <label class="input-label" for="typeSelect">Account Type</label>
+            <select id="typeSelect" class="form-select" [(ngModel)]="newAccountType">
+              <option value="CURRENT">CURRENT (Withdraw limit: $3,000)</option>
+              <option value="SAVING">SAVING (Withdraw limit: $4,000)</option>
+              <option value="CORPORATE">CORPORATE (Withdraw limit: $50,000)</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label class="input-label" for="initBalInput">Opening Deposit Balance (USD)</label>
+            <input id="initBalInput" type="number" class="form-input" min="0" [(ngModel)]="newInitialBalance">
+          </div>
+
+          <button class="btn btn-primary full-btn" [disabled]="createLoading()" (click)="submitCreateAccount()">
+            {{ createLoading() ? 'Provisioning...' : 'Confirm & Open Account' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

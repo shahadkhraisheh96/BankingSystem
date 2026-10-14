@@ -1,0 +1,217 @@
+<div class="transactions-container">
+  <header class="page-header">
+    <div>
+      <h1>Capital Transfer & Transactions Hub</h1>
+      <p class="subtitle">Execute deposits, withdrawals, wires, and inspect account ledger statements</p>
+    </div>
+  </header>
+
+  <!-- Top Navigation Tabs -->
+  <div class="ops-tabs glass-card">
+    <button class="tab-btn" [class.active]="activeTab() === 'HISTORY'" (click)="activeTab.set('HISTORY')">
+      <span>📜</span> Statement & Audit Ledger
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'TRANSFER'" (click)="activeTab.set('TRANSFER')">
+      <span>⇄</span> Direct Wire Transfer
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'DEPOSIT'" (click)="activeTab.set('DEPOSIT')">
+      <span>↓</span> Cash Deposit
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'WITHDRAW'" (click)="activeTab.set('WITHDRAW')">
+      <span>↑</span> Cash Withdrawal
+    </button>
+  </div>
+
+  @if (opError()) {
+    <div class="alert alert-error">
+      <span>⚠️</span>
+      <span>{{ opError() }}</span>
+    </div>
+  }
+
+  @if (opSuccess()) {
+    <div class="alert alert-success">
+      <span>✓</span>
+      <span>{{ opSuccess() }}</span>
+    </div>
+  }
+
+  <!-- TAB: STATEMENT & HISTORY -->
+  @if (activeTab() === 'HISTORY') {
+    <section class="ledger-section glass-card">
+      <div class="ledger-filter-bar">
+        <div class="filter-group">
+          <label class="input-label" for="filterAcc">Select Account to Audit</label>
+          <div class="filter-input-row">
+            <select id="filterAcc" class="form-select" [(ngModel)]="selectedLedgerAccount" (change)="loadLedger()">
+              @for (acc of accounts(); track acc.accountNumber) {
+                <option [value]="acc.accountNumber">
+                  {{ acc.accountNumber }} — {{ acc.accountType }} (Balance: ${{ acc.accountBalance }})
+                </option>
+              }
+            </select>
+            <button class="btn btn-primary" (click)="loadLedger()">Refresh</button>
+          </div>
+        </div>
+      </div>
+
+      @if (loadingLedger()) {
+        <div class="loading-state">
+          <div class="spinner-large"></div>
+          <p>Retrieving transaction entries...</p>
+        </div>
+      } @else if (transactions().length === 0) {
+        <div class="empty-state">
+          <span>📜</span>
+          <h3>No transactions recorded for account {{ selectedLedgerAccount }}</h3>
+          <p>Execute a deposit, withdrawal, or wire transfer to generate audit entries.</p>
+        </div>
+      } @else {
+        <div class="table-responsive">
+          <table class="fin-table">
+            <thead>
+              <tr>
+                <th>Transaction ID</th>
+                <th>Type</th>
+                <th>Account</th>
+                <th>Counterparty</th>
+                <th>Amount</th>
+                <th>Timestamp</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (tx of transactions(); track tx.id || tx.transactionDate) {
+                <tr>
+                  <td class="font-mono text-dim">{{ tx.id ? (tx.id.substring(0, 8) + '...') : '—' }}</td>
+                  <td>
+                    <span class="badge" 
+                      [ngClass]="{
+                        'badge-saving': tx.type === 'DEPOSIT',
+                        'badge-corporate': tx.type === 'WITHDRAW',
+                        'badge-current': tx.type === 'TRANSFER'
+                      }">
+                      {{ tx.type }}
+                    </span>
+                  </td>
+                  <td class="font-mono">{{ tx.accountNumber }}</td>
+                  <td class="font-mono text-muted">{{ tx.accountNumberTo || '—' }}</td>
+                  <td class="font-mono amount-cell" [class.credit]="tx.type === 'DEPOSIT'" [class.debit]="tx.type !== 'DEPOSIT'">
+                    {{ tx.type === 'DEPOSIT' ? '+' : '-' }}{{ tx.amount | currency:'USD':'symbol':'1.2-2' }}
+                  </td>
+                  <td class="text-muted text-sm">{{ tx.transactionDate || 'Recent' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  }
+
+  <!-- TAB: TRANSFER -->
+  @if (activeTab() === 'TRANSFER') {
+    <div class="form-card glass-card">
+      <div class="form-header">
+        <h3>Inter-Account Wire Transfer</h3>
+        <p>Transfer capital instantly between bank accounts with automatic limit validation.</p>
+      </div>
+
+      <div class="form-grid">
+        <div class="input-group">
+          <label class="input-label" for="tFrom">From Source Account</label>
+          <select id="tFrom" class="form-select" [(ngModel)]="transferFrom">
+            @for (acc of accounts(); track acc.accountNumber) {
+              <option [value]="acc.accountNumber">
+                {{ acc.accountNumber }} - {{ acc.accountType }} (${{ acc.accountBalance }})
+              </option>
+            }
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label" for="tTo">To Destination Account Number</label>
+          <input id="tTo" type="text" class="form-input" placeholder="e.g. 00002" [(ngModel)]="transferTo">
+        </div>
+
+        <div class="input-group full-width">
+          <label class="input-label" for="tAmt">Amount to Wire (USD)</label>
+          <input id="tAmt" type="number" class="form-input" placeholder="0.00" min="1" [(ngModel)]="transferAmount">
+        </div>
+      </div>
+
+      <div class="info-box">
+        <span>ℹ️ Note: Transfer will perform atomic withdrawal on source account and credit destination account. Maximum limit is governed by the source account type.</span>
+      </div>
+
+      <button class="btn btn-primary submit-action-btn" [disabled]="opLoading()" (click)="executeTransfer()">
+        {{ opLoading() ? 'Wiring Funds...' : 'Authorize Transfer' }}
+      </button>
+    </div>
+  }
+
+  <!-- TAB: DEPOSIT -->
+  @if (activeTab() === 'DEPOSIT') {
+    <div class="form-card glass-card">
+      <div class="form-header">
+        <h3>Deposit Funds</h3>
+        <p>Credit funds to an open account balance.</p>
+      </div>
+
+      <div class="input-group">
+        <label class="input-label" for="dAcc">Account Number</label>
+        <select id="dAcc" class="form-select" [(ngModel)]="depositAccount">
+          @for (acc of accounts(); track acc.accountNumber) {
+            <option [value]="acc.accountNumber">
+              {{ acc.accountNumber }} - {{ acc.accountType }} (${{ acc.accountBalance }})
+            </option>
+          }
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label class="input-label" for="dAmt">Deposit Amount (USD)</label>
+        <input id="dAmt" type="number" class="form-input" placeholder="0.00" min="1" [(ngModel)]="depositAmount">
+      </div>
+
+      <button class="btn btn-emerald submit-action-btn" [disabled]="opLoading()" (click)="executeDeposit()">
+        {{ opLoading() ? 'Processing Deposit...' : 'Confirm Deposit' }}
+      </button>
+    </div>
+  }
+
+  <!-- TAB: WITHDRAW -->
+  @if (activeTab() === 'WITHDRAW') {
+    <div class="form-card glass-card">
+      <div class="form-header">
+        <h3>Cash Withdrawal</h3>
+        <p>Dispense funds from an account subject to the Strategy limit rules.</p>
+      </div>
+
+      <div class="input-group">
+        <label class="input-label" for="wAcc">Account Number</label>
+        <select id="wAcc" class="form-select" [(ngModel)]="withdrawAccount">
+          @for (acc of accounts(); track acc.accountNumber) {
+            <option [value]="acc.accountNumber">
+              {{ acc.accountNumber }} - {{ acc.accountType }} (${{ acc.accountBalance }})
+            </option>
+          }
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label class="input-label" for="wAmt">Withdrawal Amount (USD)</label>
+        <input id="wAmt" type="number" class="form-input" placeholder="0.00" min="1" [(ngModel)]="withdrawAmount">
+      </div>
+
+      <div class="limit-indicator-box">
+        <span class="indicator-title">Account Type Rule:</span>
+        <span class="indicator-badge badge badge-current">{{ getSelectedAccountType(withdrawAccount) }}</span>
+        <span class="indicator-limit">Max Single Limit: <strong>${{ getWithdrawalLimit(withdrawAccount) | number }}</strong></span>
+      </div>
+
+      <button class="btn btn-rose submit-action-btn" [disabled]="opLoading()" (click)="executeWithdraw()">
+        {{ opLoading() ? 'Authorizing Withdrawal...' : 'Execute Withdrawal' }}
+      </button>
+    </div>
+  }
+</div>

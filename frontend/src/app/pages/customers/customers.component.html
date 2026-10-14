@@ -1,0 +1,179 @@
+<div class="customers-container">
+  <header class="page-header">
+    <div>
+      <h1>Client Directory & Onboarding</h1>
+      <p class="subtitle">Manage individual retail depositors and corporate enterprise partners</p>
+    </div>
+    <div class="header-buttons">
+      <button class="btn btn-secondary" (click)="openRegisterModal('INDIVIDUAL')">
+        <span>+</span> Onboard Individual
+      </button>
+      <button class="btn btn-primary" (click)="openRegisterModal('CORPORATE')">
+        <span>+</span> Onboard Corporate
+      </button>
+    </div>
+  </header>
+
+  <!-- Type Selector & Filter Bar -->
+  <div class="filter-bar glass-card">
+    <div class="type-toggle">
+      <button 
+        class="toggle-btn" 
+        [class.active]="selectedType() === 'INDIVIDUAL'" 
+        (click)="changeType('INDIVIDUAL')">
+        👤 Individual Retail ({{ selectedType() === 'INDIVIDUAL' ? customers().length : '' }})
+      </button>
+      <button 
+        class="toggle-btn" 
+        [class.active]="selectedType() === 'CORPORATE'" 
+        (click)="changeType('CORPORATE')">
+        🏢 Corporate Enterprise ({{ selectedType() === 'CORPORATE' ? customers().length : '' }})
+      </button>
+    </div>
+
+    <div class="search-wrap">
+      <input 
+        type="text" 
+        class="form-input" 
+        placeholder="Filter by name, ID, or company..." 
+        [(ngModel)]="searchQuery">
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state glass-card">
+      <div class="spinner-large"></div>
+      <p>Synchronizing customer profiles...</p>
+    </div>
+  } @else if (filteredCustomers().length === 0) {
+    <div class="empty-state glass-card">
+      <span>👥</span>
+      <h3>No {{ selectedType() | lowercase }} customers found</h3>
+      <p>Add a new customer to initiate accounts and banking relationships.</p>
+      <button class="btn btn-primary" (click)="openRegisterModal(selectedType())">
+        Onboard First {{ selectedType() === 'INDIVIDUAL' ? 'Individual' : 'Corporate' }} Client
+      </button>
+    </div>
+  } @else {
+    <div class="customers-grid">
+      @for (c of filteredCustomers(); track c.id) {
+        <div class="customer-card glass-card">
+          <div class="card-top">
+            <div class="avatar-badge">
+              {{ selectedType() === 'INDIVIDUAL' ? '👤' : '🏢' }}
+            </div>
+            <span class="badge" [ngClass]="selectedType() === 'INDIVIDUAL' ? 'badge-current' : 'badge-corporate'">
+              {{ c.customerType }}
+            </span>
+          </div>
+
+          <div class="client-main">
+            @if (c.customerType === 'INDIVIDUAL') {
+              <h3>{{ asIndividual(c).firstName }} {{ asIndividual(c).lastName }}</h3>
+              <span class="client-sub">National ID: {{ asIndividual(c).nationalId }}</span>
+            } @else {
+              <h3>{{ asCorporate(c).companyName }}</h3>
+              <span class="client-sub">Tax ID: {{ asCorporate(c).taxId }}</span>
+            }
+          </div>
+
+          <div class="client-details">
+            <div class="detail-item">
+              <span class="label">Client ID:</span>
+              <span class="value font-mono">{{ c.id }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Phone:</span>
+              <span class="value font-mono">{{ c.phoneNumber }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Registered:</span>
+              <span class="value text-muted">{{ c.registrationDate }}</span>
+            </div>
+          </div>
+
+          <div class="card-actions">
+            <a [routerLink]="['/accounts']" class="btn btn-secondary full-width-btn">
+              View Accounts →
+            </a>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Onboard Customer Modal -->
+  @if (showModal()) {
+    <div class="modal-backdrop" (click)="closeModal()">
+      <div class="modal-dialog glass-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Onboard {{ modalType === 'INDIVIDUAL' ? 'Individual Depositor' : 'Corporate Entity' }}</h3>
+          <button class="close-btn" (click)="closeModal()">✕</button>
+        </div>
+
+        @if (modalError()) {
+          <div class="alert alert-error">
+            <span>⚠️</span>
+            <span>{{ modalError() }}</span>
+          </div>
+        }
+
+        @if (modalSuccess()) {
+          <div class="alert alert-success">
+            <span>✓</span>
+            <span>{{ modalSuccess() }}</span>
+          </div>
+        }
+
+        <div class="modal-body">
+          @if (modalType === 'INDIVIDUAL') {
+            <div class="form-row">
+              <div class="input-group">
+                <label class="input-label" for="fn">First Name</label>
+                <input id="fn" type="text" class="form-input" placeholder="e.g. John" [(ngModel)]="indFirstName">
+              </div>
+              <div class="input-group">
+                <label class="input-label" for="ln">Last Name</label>
+                <input id="ln" type="text" class="form-input" placeholder="e.g. Doe" [(ngModel)]="indLastName">
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label class="input-label" for="nid">National Identification Number</label>
+              <input id="nid" type="number" class="form-input" placeholder="e.g. 102938475" [(ngModel)]="indNationalId">
+            </div>
+
+            <div class="input-group">
+              <label class="input-label" for="bday">Date of Birth</label>
+              <input id="bday" type="date" class="form-input" [(ngModel)]="indBirthDate">
+            </div>
+
+            <div class="input-group">
+              <label class="input-label" for="phone">Phone Number</label>
+              <input id="phone" type="number" class="form-input" placeholder="e.g. 9864773" [(ngModel)]="indPhone">
+            </div>
+          } @else {
+            <div class="input-group">
+              <label class="input-label" for="cname">Company / Organization Legal Name</label>
+              <input id="cname" type="text" class="form-input" placeholder="e.g. Apex Global Corp" [(ngModel)]="corpCompanyName">
+            </div>
+
+            <div class="input-group">
+              <label class="input-label" for="tax">Tax Identification Number</label>
+              <input id="tax" type="number" class="form-input" placeholder="e.g. 99887766" [(ngModel)]="corpTaxId">
+            </div>
+
+            <div class="input-group">
+              <label class="input-label" for="cphone">Corporate Contact Phone</label>
+              <input id="cphone" type="number" class="form-input" placeholder="e.g. 9864773" [(ngModel)]="corpPhone">
+            </div>
+          }
+
+          <button class="btn btn-primary submit-btn" [disabled]="createLoading()" (click)="submitCustomer()">
+            {{ createLoading() ? 'Registering...' : 'Complete Onboarding' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
