@@ -5,7 +5,9 @@
       <div class="sidebar-brand">
         <div class="brand-logo">🏛️</div>
         <div class="brand-text">
-          <h2>AeroBank</h2>
+          <h2>
+            <app-shiny-text text="AeroBank" [speed]="3.5"></app-shiny-text>
+          </h2>
           <span class="sub-caption">Enterprise Edition</span>
         </div>
       </div>
@@ -35,7 +37,7 @@
       <div class="sidebar-footer">
         <div class="backend-status-pill">
           <span class="pulse-dot"></span>
-          <span>Spring Boot :8080</span>
+          <app-decrypted-text text="Spring Boot Live :8080" [speed]="45"></app-decrypted-text>
         </div>
 
         <div class="user-profile-strip">

@@ -4,10 +4,22 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
+import { AuroraBackgroundComponent } from '../../shared/components/aurora-background/aurora-background.component';
+import { SpotlightCardComponent } from '../../shared/components/spotlight-card/spotlight-card.component';
+import { ShinyTextComponent } from '../../shared/components/shiny-text/shiny-text.component';
+import { DecryptedTextComponent } from '../../shared/components/decrypted-text/decrypted-text.component';
+
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    AuroraBackgroundComponent, 
+    SpotlightCardComponent, 
+    ShinyTextComponent, 
+    DecryptedTextComponent
+  ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })

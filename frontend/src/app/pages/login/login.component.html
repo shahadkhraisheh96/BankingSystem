@@ -1,99 +1,108 @@
-<div class="auth-viewport">
-  <div class="auth-container glass-card">
-    <div class="auth-header">
-      <div class="brand-badge">
-        <span class="brand-icon">🏦</span>
-        <span class="brand-name">AeroBank Desktop</span>
-      </div>
-      <h2>{{ isLoginMode() ? 'Sign in to your account' : 'Open a new access portal' }}</h2>
-      <p class="subtitle">Secure Enterprise Banking & Capital Management</p>
-    </div>
-
-    <!-- Mode Switcher Tabs -->
-    <div class="tab-switcher">
-      <button 
-        type="button" 
-        [class.active]="isLoginMode()" 
-        (click)="!isLoginMode() && toggleMode()">
-        Sign In
-      </button>
-      <button 
-        type="button" 
-        [class.active]="!isLoginMode()" 
-        (click)="isLoginMode() && toggleMode()">
-        Register
-      </button>
-    </div>
-
-    @if (errorMessage()) {
-      <div class="alert alert-error">
-        <span>⚠️</span>
-        <span>{{ errorMessage() }}</span>
-      </div>
-    }
-
-    @if (successMessage()) {
-      <div class="alert alert-success">
-        <span>✓</span>
-        <span>{{ successMessage() }}</span>
-      </div>
-    }
-
-    <form (ngSubmit)="onSubmit()">
-      @if (!isLoginMode()) {
-        <div class="input-group">
-          <label class="input-label" for="username">Username</label>
-          <input 
-            id="username" 
-            type="text" 
-            class="form-input" 
-            placeholder="Enter username" 
-            [(ngModel)]="userName" 
-            name="userName" 
-            required>
+<app-aurora-background [showGrid]="true">
+  <div class="auth-viewport">
+    <app-spotlight-card spotlightColor="rgba(99, 102, 241, 0.25)" [spotlightSize]="450" customClass="auth-spotlight">
+      <div class="auth-container">
+        <div class="auth-header">
+          <div class="brand-badge">
+            <span class="brand-icon">🏦</span>
+            <app-shiny-text text="AEROBANK ENTERPRISE" [speed]="3"></app-shiny-text>
+          </div>
+          <h2>{{ isLoginMode() ? 'Sign in to access portal' : 'Open a new corporate access' }}</h2>
+          <div class="decrypt-status">
+            <app-decrypted-text 
+              [text]="isLoginMode() ? 'ENTERPRISE RSA-4096 ENCRYPTION VERIFIED' : 'NEW OFFICER INITIALIZATION PROTOCOL'" 
+              [speed]="30">
+            </app-decrypted-text>
+          </div>
         </div>
-      }
 
-      <div class="input-group">
-        <label class="input-label" for="email">Corporate or Personal Email</label>
-        <input 
-          id="email" 
-          type="email" 
-          class="form-input" 
-          placeholder="name@aerobank.com" 
-          [(ngModel)]="email" 
-          name="email" 
-          required>
-      </div>
+        <!-- Mode Switcher Tabs -->
+        <div class="tab-switcher">
+          <button 
+            type="button" 
+            [class.active]="isLoginMode()" 
+            (click)="!isLoginMode() && toggleMode()">
+            Sign In
+          </button>
+          <button 
+            type="button" 
+            [class.active]="!isLoginMode()" 
+            (click)="isLoginMode() && toggleMode()">
+            Register Officer
+          </button>
+        </div>
 
-      <div class="input-group">
-        <label class="input-label" for="password">Password</label>
-        <input 
-          id="password" 
-          type="password" 
-          class="form-input" 
-          placeholder="••••••••••••" 
-          [(ngModel)]="password" 
-          name="password" 
-          required>
-      </div>
-
-      <button type="submit" class="btn btn-primary submit-btn" [disabled]="loading()">
-        @if (loading()) {
-          <span class="spinner"></span> Processing...
-        } @else {
-          {{ isLoginMode() ? 'Authorize & Enter' : 'Create Bank Credentials' }}
+        @if (errorMessage()) {
+          <div class="alert alert-error">
+            <span>⚠️</span>
+            <span>{{ errorMessage() }}</span>
+          </div>
         }
-      </button>
-    </form>
 
-    <div class="auth-footer">
-      <p>
-        {{ isLoginMode() ? "Don't have an account?" : "Already have bank credentials?" }}
-        <button type="button" class="link-btn" (click)="toggleMode()">
-          {{ isLoginMode() ? 'Register here' : 'Sign in instead' }}
-        </button>
-      </p>
-    </div>
+        @if (successMessage()) {
+          <div class="alert alert-success">
+            <span>✓</span>
+            <span>{{ successMessage() }}</span>
+          </div>
+        }
+
+        <form (ngSubmit)="onSubmit()">
+          @if (!isLoginMode()) {
+            <div class="input-group">
+              <label class="input-label" for="username">Officer Username</label>
+              <input 
+                id="username" 
+                type="text" 
+                class="form-input" 
+                placeholder="e.g. officer_admin" 
+                [(ngModel)]="userName" 
+                name="userName" 
+                required>
+            </div>
+          }
+
+          <div class="input-group">
+            <label class="input-label" for="email">Authorized Email</label>
+            <input 
+              id="email" 
+              type="email" 
+              class="form-input" 
+              placeholder="officer@aerobank.com" 
+              [(ngModel)]="email" 
+              name="email" 
+              required>
+          </div>
+
+          <div class="input-group">
+            <label class="input-label" for="password">Password Credentials</label>
+            <input 
+              id="password" 
+              type="password" 
+              class="form-input" 
+              placeholder="••••••••••••" 
+              [(ngModel)]="password" 
+              name="password" 
+              required>
+          </div>
+
+          <button type="submit" class="btn btn-primary submit-btn" [disabled]="loading()">
+            @if (loading()) {
+              <span class="spinner"></span> Authenticating...
+            } @else {
+              {{ isLoginMode() ? 'Authorize & Enter Vault' : 'Generate Bank Identity' }}
+            }
+          </button>
+        </form>
+
+        <div class="auth-footer">
+          <p>
+            {{ isLoginMode() ? "New bank personnel without credentials?" : "Existing officer login?" }}
+            <button type="button" class="link-btn" (click)="toggleMode()">
+              {{ isLoginMode() ? 'Enroll identity' : 'Sign in instead' }}
+            </button>
+          </p>
+        </div>
+      </div>
+    </app-spotlight-card>
   </div>
-</div>
+</app-aurora-background>

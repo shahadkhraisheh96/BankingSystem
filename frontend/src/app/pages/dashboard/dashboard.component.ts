@@ -8,10 +8,25 @@ import { TransactionService } from '../../core/services/transaction.service';
 import { Customer } from '../../core/models/customer.model';
 import { Account, AccountType, ACCOUNT_LIMITS } from '../../core/models/account.model';
 
+import { SpotlightCardComponent } from '../../shared/components/spotlight-card/spotlight-card.component';
+import { TiltedCardComponent } from '../../shared/components/tilted-card/tilted-card.component';
+import { CountUpComponent } from '../../shared/components/count-up/count-up.component';
+import { ShinyTextComponent } from '../../shared/components/shiny-text/shiny-text.component';
+import { DecryptedTextComponent } from '../../shared/components/decrypted-text/decrypted-text.component';
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    RouterModule,
+    SpotlightCardComponent,
+    TiltedCardComponent,
+    CountUpComponent,
+    ShinyTextComponent,
+    DecryptedTextComponent
+  ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
 })
