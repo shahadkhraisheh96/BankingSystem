@@ -29,4 +29,13 @@ public class AuthApi {
 
     }
 
+    @org.springframework.web.bind.annotation.ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<?> handleIllegalArgument(IllegalArgumentException ex){
+        return ResponseEntity.badRequest().body(java.util.Map.of("message", ex.getMessage().trim()));
+    }
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(Exception.class)
+    public ResponseEntity<?> handleGeneralException(Exception ex){
+        return ResponseEntity.badRequest().body(java.util.Map.of("message", ex.getMessage() != null ? ex.getMessage() : "Authentication failed"));
+    }
 }

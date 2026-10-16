@@ -67,7 +67,7 @@ export class LoginComponent {
         },
         error: (err) => {
           this.loading.set(false);
-          this.errorMessage.set(err.error?.message || err.error || 'Login failed. Please verify your credentials.');
+          this.errorMessage.set(this.extractErrorMessage(err, 'Sign in failed'));
         }
       });
     } else {
@@ -86,9 +86,51 @@ export class LoginComponent {
         },
         error: (err) => {
           this.loading.set(false);
-          this.errorMessage.set(err.error?.message || err.error || 'Registration failed. Username may already exist.');
+          this.errorMessage.set(this.extractErrorMessage(err, 'Registration failed'));
         }
       });
     }
+  }
+
+  private extractErrorMessage(err: any, fallbackPrefix: string): string {
+    if (!err) return `${fallbackPrefix}. Please try again.`;
+
+    // Backend not running / connection refused
+    if (err.status === 0) {
+      return 'Cannot connect to backend server. Please verify Spring Boot is running on port 8080 (run .\\run-backend.ps1).';
+    }
+
+    // String error body (e.g. JSON returned with responseType: text)
+    if (typeof err.error === 'string') {
+      try {
+        const parsed = JSON.parse(err.error);
+        if (parsed?.message) return parsed.message;
+      } catch {
+        if (err.error.trim().length > 0 && !err.error.includes('<html')) {
+          return err.error;
+        }
+      }
+    }
+
+    // Object error body
+    if (err.error && typeof err.error === 'object' && !(err.error instanceof ProgressEvent)) {
+      if (err.error.message) return err.error.message;
+      if (err.error.error) return err.error.error;
+    }
+
+    // Status code fallbacks
+    if (err.status === 400 || err.status === 401) {
+      return 'Invalid email or password. Please verify your credentials.';
+    }
+
+    if (err.status === 403) {
+      return 'Access denied. You do not have permission.';
+    }
+
+    if (err.status >= 500) {
+      return 'Server error during authentication. Please check backend logs.';
+    }
+
+    return `${fallbackPrefix}. Please verify your credentials.`;
   }
 }
