@@ -13,6 +13,9 @@ public class UserJpaMapper {
         return userEntity;
     }
     public static User toUser(UserEntity userEntity) {
+        if (userEntity == null) {
+            return null;
+        }
         return User.builder().id(userEntity.getId())
                 .email(userEntity.getEmail())
                 .password(userEntity.getPassword())
